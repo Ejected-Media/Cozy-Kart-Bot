@@ -1,5 +1,7 @@
 ~
 
+![°](https://github.com/Ejected-Media/Cozy-Kart-Bot/blob/main/Development/pics/1768419376677.jpg "$")
+
 ![°](https://github.com/Ejected-Media/Cozy-Kart-Bot/blob/main/Development/pics/1768419802797.jpg "$")
 
 ![°](https://github.com/Ejected-Media/Cozy-Kart-Bot/blob/main/Development/pics/1768419449339.jpg "$")
