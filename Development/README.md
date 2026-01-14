@@ -13,3 +13,6 @@
 
 
 ![°](https://github.com/Ejected-Media/Cozy-Kart-Bot/blob/main/Development/pics/1768409559543.jpg "$")
+
+
+![°](https://github.com/Ejected-Media/Cozy-Kart-Bot/blob/main/Development/pics/1768409817250.jpg "$")
