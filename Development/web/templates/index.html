@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cozy-Kart Live</title>
+    <meta http-equiv="refresh" content="10">
+    <style>
+        body { background-color: #1a1a1a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; text-align: center; }
+        
+        /* The Twitch Stage */
+        #twitch-embed { 
+            width: 100%; 
+            aspect-ratio: 16/9; 
+            border: 4px solid #5865F2; 
+            border-radius: 8px; 
+            margin-bottom: 20px;
+            background: black;
+        }
+
+        /* The N64 Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .player-card {
+            background: #2b2b2b;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            border: 2px solid #444;
+        }
+        
+        .player-card.active { border-color: #4caf50; background: #1e3a1e; }
+        
+        .avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 10px; background: #444; object-fit: cover;}
+        .info { text-align: left; }
+        .name { font-weight: bold; font-size: 1.1em; }
+        .status { font-size: 0.8em; color: #aaa; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏁 Cozy-Kart Arena</h1>
+        
+        <div id="twitch-embed"></div>
+
+        <div class="grid-container">
+            {{ range .Grid }}
+                {{ if eq .Status "EMPTY" }}
+                <div class="player-card">
+                    <div class="avatar"></div>
+                    <div class="info">
+                        <div class="name" style="color:#666">WAITING...</div>
+                    </div>
+                </div>
+                {{ else }}
+                <div class="player-card active">
+                    <img src="{{ .AvatarURL }}" class="avatar">
+                    <div class="info">
+                        <div class="name">{{ .MKTUsername }}</div>
+                        <div class="status">{{ .Status }}</div>
+                    </div>
+                </div>
+                {{ end }}
+            {{ end }}
+        </div>
+    </div>
+
+    <script src="https://embed.twitch.tv/embed/v1.js"></script>
+    <script type="text/javascript">
+      new Twitch.Embed("twitch-embed", {
+        width: "100%",
+        height: "100%",
+        channel: "{{ .TwitchUser }}", 
+        layout: "video",
+        autoplay: true,
+        parent: ["localhost", "127.0.0.1"] // Add your domain here when deploying!
+      });
+    </script>
+</body>
+</html>
