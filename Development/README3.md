@@ -91,3 +91,144 @@ Instead of selling ads for just one race, you can approach a sponsor and say:
 > 
 This is how real sports monetize, and it works perfectly for your community league.
 Would you like me to write the calculatePoints function (standard Mario Kart scoring: 15, 12, 10, 8...) or help you design the "Trophy Case" UI?
+
+___
+
+
+It is exciting to see this evolve into a full League! Since you said "Yes," I will provide both the scoring logic and the visual Trophy Case design so you have the complete package.
+1. The Scoring Logic (internal/bot/logic.go)
+We will use a standard "Formula 1" or "Mario Kart" style point distribution. This rewards consistency but heavily favors winning.
+package bot
+
+// calculatePoints maps a finishing position (1-8) to a point value.
+// Based on standard Mario Kart 8 Deluxe distribution.
+func calculatePoints(position int) int {
+	switch position {
+	case 1:
+		return 15 // 🥇 Gold
+	case 2:
+		return 12 // 🥈 Silver
+	case 3:
+		return 10 // 🥉 Bronze
+	case 4:
+		return 9
+	case 5:
+		return 8
+	case 6:
+		return 7
+	case 7:
+		return 6
+	case 8:
+		return 5
+	default:
+		return 1 // Participation point for DNFs or crashes
+	}
+}
+
+// GetTrophyIcon returns a visual emoji for the top 3
+func GetTrophyIcon(rank int) string {
+	switch rank {
+	case 1:
+		return "🏆"
+	case 2:
+		return "🥈"
+	case 3:
+		return "🥉"
+	default:
+		return ""
+	}
+}
+
+2. The "Trophy Case" UI (web/templates/profile.html)
+A leaderboard is just a list of names. A Trophy Case is personal. This is a section you can add to the User's Profile page on your dashboard. It shows off their past victories visually.
+The HTML:
+<div class="trophy-case-container">
+    <h2>🏆 Hall of Fame: {{ .Username }}</h2>
+    
+    <div class="stats-row">
+        <div class="stat-box">
+            <div class="value">{{ .SeasonPoints }}</div>
+            <div class="label">Season Points</div>
+        </div>
+        <div class="stat-box">
+            <div class="value">{{ .TotalWins }}</div>
+            <div class="label">1st Place Wins</div>
+        </div>
+        <div class="stat-box money">
+            <div class="value">${{ .Earnings }}</div>
+            <div class="label">Career Earnings</div>
+        </div>
+    </div>
+
+    <h3>Cabinet</h3>
+    <div class="cabinet-grid">
+        {{ range .Trophies }}
+        <div class="trophy-item tooltip">
+            <span class="icon">{{ .Icon }}</span> <span class="date">{{ .Date }}</span>
+            <span class="tooltiptext">{{ .RaceName }}</span>
+        </div>
+        {{ else }}
+        <div class="empty-case">No trophies yet... get racing!</div>
+        {{ end }}
+    </div>
+</div>
+
+The CSS:
+.trophy-case-container {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 20px;
+    color: white;
+    max-width: 500px;
+    margin: 20px auto;
+    border: 1px solid #333;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    text-align: center;
+    background: #2b2b2b;
+    padding: 10px;
+    border-radius: 8px;
+    flex: 1;
+    margin: 0 5px;
+}
+
+.stat-box.money .value { color: #4caf50; } /* Green for money */
+
+.value { font-size: 1.5em; font-weight: bold; }
+.label { font-size: 0.8em; color: #888; text-transform: uppercase; }
+
+.cabinet-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5 Trophies per row */
+    gap: 10px;
+    background: #000;
+    padding: 15px;
+    border-radius: 8px;
+    border-top: 4px solid #d4af37; /* Gold Trim */
+}
+
+.trophy-item {
+    font-size: 2em;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.trophy-item:hover { transform: scale(1.2); }
+
+.empty-case { grid-column: span 5; text-align: center; color: #555; padding: 20px; font-style: italic; }
+
+3. The Visual Summary
+Here is how the League System fits into your overall architecture. This diagram shows the complete loop from the moment a race finishes to the moment the trophy appears on the website.
+Summary of What We Built
+ * Engine: calculatePoints handles the math.
+ * Display: The HTML/CSS creates a beautiful, retro-gaming style profile.
+ * Incentive: Players now race not just for fun, but to fill their empty cabinet slots.
+This effectively completes the "Cozy-Kart" ecosystem! You have Operations (Bot), Display (Web), Monetization (Commissions), and Retention (League/Trophies).
