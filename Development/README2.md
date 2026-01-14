@@ -109,3 +109,100 @@ Instead of promising immediate "Cash," start by rewarding "Store Credit" or "Gif
  * Example: "If you earn $50 in commissions, we send you a $50 Amazon Gift Card or a Free Hoodie."
  * This avoids you having to become a regulated payment processor immediately.
 Would you like me to write the Go code for the /wallet command so players can check their earnings in Discord?
+
+
+___
+
+
+This is a crucial feature for engagement. If players can see their balance going up, they will race more often and promote your stream harder.
+Here is the implementation for the /wallet command.
+1. The Database Logic (store/store.go)
+Add this method to your Store struct. It fetches the balance, returning 0.00 if they are new.
+// GetBalance returns the pending and paid amounts for a user
+func (s *Store) GetBalance(discordID string) (float64, float64, error) {
+    var pending, paid float64
+    
+    // We use COALESCE to return 0 instead of NULL if the row doesn't exist
+    query := `
+    SELECT COALESCE(pending_balance, 0), COALESCE(total_paid, 0) 
+    FROM balances 
+    WHERE discord_id = ?
+    `
+    err := s.DB.QueryRow(query, discordID).Scan(&pending, &paid)
+    
+    // If no row found, it's not an error, they just have $0
+    if err == sql.ErrNoRows {
+        return 0.0, 0.0, nil
+    }
+    
+    return pending, paid, err
+}
+
+2. The Command Handler (internal/bot/bot.go)
+We will add a new case to your interaction switch for "wallet".
+Critical Detail: We set Flags: discordgo.MessageFlagsEphemeral. This ensures the message is private. Only the user who typed the command can see their money; it won't show up in the public chat.
+func handleWallet(s *discordgo.Session, i *discordgo.InteractionCreate, db *store.Store) {
+    user := i.Member.User
+    
+    // 1. Get the money
+    pending, paid, err := db.GetBalance(user.ID)
+    if err != nil {
+        sendError(s, i, "Could not fetch wallet.")
+        return
+    }
+
+    // 2. Format the response
+    // We use an "Embed" for a nicer look with colors
+    embed := &discordgo.MessageEmbed{
+        Title:       "💰 Your Racer Wallet",
+        Description: "Here is your share of the merch sales from races you participated in.",
+        Color:       0xFFD700, // Gold color
+        Thumbnail: &discordgo.MessageEmbedThumbnail{
+            URL: user.AvatarURL(""),
+        },
+        Fields: []*discordgo.MessageEmbedField{
+            {
+                Name:   "Current Balance (Unpaid)",
+                Value:  fmt.Sprintf("**$%.2f**", pending),
+                Inline: true,
+            },
+            {
+                Name:   "Lifetime Earnings",
+                Value:  fmt.Sprintf("$%.2f", paid),
+                Inline: true,
+            },
+        },
+        Footer: &discordgo.MessageEmbedFooter{
+            Text: "Payouts occur when balance reaches $20.00",
+        },
+    }
+
+    // 3. Send Private Response
+    s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+        Type: discordgo.InteractionResponseChannelMessageWithSource,
+        Data: &discordgo.InteractionResponseData{
+            Embeds: []*discordgo.MessageEmbed{embed},
+            Flags:  discordgo.MessageFlagsEphemeral, // Only YOU see this
+        },
+    })
+}
+
+// Helper to register the command in your Start() function:
+/*
+    {
+        Name:        "wallet",
+        Description: "Check your earnings from merch sales",
+    },
+*/
+
+3. The Visual Flow
+Here is how the user experiences this "banking" feature within Discord:
+4. Next Step: The "Payout" Command (Admin Only)
+Eventually, you will need to actually pay them. You can add a hidden admin command:
+ * Command: /payout @User 50.00
+ * Logic:
+   * Reduces pending_balance by 50.
+   * Increases total_paid by 50.
+   * Sends a public congratulatory message: "💸 @User just cashed out $50.00!"
+This completes the economic loop of Cozy-Kart: Race -> Sell -> Earn -> Cash Out.
+
