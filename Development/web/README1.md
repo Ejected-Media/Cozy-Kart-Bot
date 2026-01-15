@@ -58,3 +58,41 @@ export const connectToRace = (onStateChange) => {
  * src/components/PotDisplay.jsx:
    Since money is the focus, this component usually uses a library like react-spring or framer-motion to "roll" the numbers up (like a gas pump) whenever the backend sends a new pot amount.
 Would you like to see the React Code for that Overlay.jsx component to see how it renders the dashboard?
+
+___
+
+Based on your interest in GoLang and keeping things efficient (and likely for a project like C500 or selfielunge where you want to focus on layout/content rather than complex state management), you are almost certainly thinking of HTMX.
+The combination is often called the GOHA Stack (Go, HTMX, Alpine) or simply the Hypermedia Stack.
+ * Alpine.js: Handles the "micro-interactions" on the client (toggling menus, simple animations, dropdowns) without leaving the HTML.
+ * HTMX: Handles the server communication. Instead of fetching JSON and rebuilding the DOM (like React), it fetches ready-to-render HTML from your Go server and swaps it into the page.
+ * Tailwind CSS: (Usually) handles the styling.
+Why we likely chose this for the other project:
+ * Go-Centric: With React (Cozy-Kart), your Go server is just a JSON vending machine. With HTMX, your Go server is the star. You write Go Templates (html/template) that render the UI directly.
+ * No Build Step: You don't need npm, webpack, or vite. You can just drop the <script> tags for Alpine and HTMX into your header and go.
+ * "Classic" Feel: It aligns perfectly with your interest in Classic Tech (MacOS 7/8, etc.). It returns to the "Old Web" philosophy where the server is in charge, but with the smoothness of a modern SPA.
+Example: The "Active Search" Pattern
+Here is how Alpine and HTMX work together in a Go template. Note how there is no JavaScript written here, just attributes.
+<div x-data="{ query: '' }"> <input 
+        type="text" 
+        name="search"
+        placeholder="Search Users..."
+        
+        /* Alpine: Sync input to local state */
+        x-model="query"
+        
+        /* HTMX: When key goes up, wait 500ms, then hit the server */
+        hx-post="/search" 
+        hx-trigger="keyup changed delay:500ms" 
+        hx-target="#search-results" 
+        hx-indicator="#loading"
+    >
+
+    <img id="loading" class="htmx-indicator" src="/spinner.gif"/>
+
+</div>
+
+<div id="search-results">
+    </div>
+
+Does that sound right? Alpine for the UI polish, HTMX for the data fetching?
+
